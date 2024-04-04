@@ -4,4 +4,4 @@ Basic and simple bash script for controlling OpenVPN connections on NIX due to t
 
 You will need to have already imported your openvpn settings and replace the server names to match what you have used. Including your main network connection id.
 
-Will possibly add wireguard support and importing of vpn server files. This is just a hacky workaround for my own use.
+Will possibly add support for importing vpn server files. This is just a hacky workaround for my own use.
