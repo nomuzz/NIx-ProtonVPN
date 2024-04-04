@@ -1,0 +1,22 @@
+#! /usr/bin/bash
+
+echo "Choose Server:"
+echo "1 - Australia"
+echo "2 - USA"
+echo "5 - Disconnect VPN"
+echo ""
+read server
+echo ""
+if [ $server = 1 ]; then
+	echo "Connecting to Australia"
+		nmcli connection modify id eth0 ipv6.method disabled && nmcli connection up id eth0 && nmcli connection up Australia
+elif [ $server = 2 ]; then
+	echo "Connecting to USA"
+		nmcli connection modify id eth0 ipv6.method disabled && nmcli connection up id eth0 && nmcli connection up USA
+elif [ $server = 5 ]; then
+	echo "Disconnecting VPN"
+	echo "Restoring Connection"
+		nmcli connection modify id eth0 ipv6.method auto && nmcli connection up id eth0
+else 
+echo "Incorrect Choice"
+fi
