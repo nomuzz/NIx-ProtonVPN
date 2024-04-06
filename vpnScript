@@ -1,22 +1,33 @@
-#! /usr/bin/bash
+#!/bin/bash
 
-echo "Choose Server:"
-echo "1 - Australia"
-echo "2 - USA"
-echo "5 - Disconnect VPN"
-echo ""
-read server
-echo ""
-if [ $server = 1 ]; then
-	echo "Connecting to Australia"
-		nmcli connection modify id eth0 ipv6.method disabled && nmcli connection up id eth0 && nmcli connection up Australia
-elif [ $server = 2 ]; then
-	echo "Connecting to USA"
-		nmcli connection modify id eth0 ipv6.method disabled && nmcli connection up id eth0 && nmcli connection up USA
-elif [ $server = 5 ]; then
-	echo "Disconnecting VPN"
-	echo "Restoring Connection"
-		nmcli connection modify id eth0 ipv6.method auto && nmcli connection up id eth0
-else 
-echo "Incorrect Choice"
+# Get the list of active VPN connections
+vpn_connections=$(nmcli connection show | grep vpn | awk '{print $1}')
+primary_connection=$(nmcli connection show --active | grep wifi | awk '{print $1}')
+
+if [ -z "$vpn_connections" ]; then
+	echo "No VPN connections found."
+else
+	echo "Select a VPN connection:"
+		select vpn_connection in ${vpn_connections[@]} "Disconnect" "Import Server"; do
+			if [  "$vpn_connection" == "Disconnect" ]; then
+				echo "Disconnecting from VPN..."
+				nmcli connection modify id $primary_connection ipv6.method auto && nmcli connection up id $primary_connection
+			elif [ "$vpn_connection" == "Import Server" ]; then
+				read -p "Enter Full Path Of .ovpn File You Want To Import: " fileLocation
+					echo "Adding VPN Server To System..."
+					echo "$fileLocation"
+					nmcli connection import type openvpn file  "$fileLocation"
+							fileName=$(basename $fileLocation) && vpnName=$(echo "$fileName" | sed 's/.ovpn//') 	# Removes .ovpn from file name
+				read -p "Enter username for VPN: " username
+				read -sp "Enter password for VPN: " password
+					nmcli connection modify "${vpnName}" +vpn.data username="${username}" && nmcli connection modify "${vpnName}" +vpn.secrets password="${password}"
+					echo "......."
+					echo "Username and Password added to server..."
+					echo "Server added to list of connections"
+			elif [ -n "$vpn_connection" ]; then
+       				echo "Connecting to: $vpn_connection..."
+       				nmcli connection modify id $primary_connection ipv6.method disabled && nmcli connection up id $primary_connection && nmcli connection up $vpn_connection
+        fi
+        break
+    done
 fi
